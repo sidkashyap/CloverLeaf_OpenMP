@@ -31,7 +31,6 @@
 
 void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
                         int *chunk_neighbours,
-                        int *tile_neighbours,
                         double *density0,
                         double *energy0,
                         double *pressure,
@@ -59,7 +58,6 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
 
   /* These need to be kept consistent with the data module to avoid use statement */
   int CHUNK_LEFT=1,CHUNK_RIGHT=2,CHUNK_BOTTOM=3,CHUNK_TOP=4,EXTERNAL_FACE=-1;
-  int TILE_LEFT=1,TILE_RIGHT=2,TILE_BOTTOM=3,TILE_TOP=4,EXTERNAL_TILE=-1;
 
   int FIELD_DENSITY0   = 1;
   int FIELD_DENSITY1   = 2;
@@ -84,7 +82,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
 #pragma omp parallel
  {
   if(fields[FTNREF1D(FIELD_DENSITY0,1)]==1) {
-    if(chunk_neighbours[FTNREF1D(CHUNK_BOTTOM,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_BOTTOM,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_BOTTOM,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (j=x_min-depth;j<=x_max+depth;j++) {
 #pragma ivdep
@@ -94,7 +92,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_TOP,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_TOP,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_TOP,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (j=x_min-depth;j<=x_max+depth;j++) {
 #pragma ivdep
@@ -104,7 +102,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_LEFT,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_LEFT,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_LEFT,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (k=y_min-depth;k<=y_max+depth;k++) {
 #pragma ivdep
@@ -114,7 +112,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_RIGHT,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_RIGHT,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_RIGHT,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (k=y_min-depth;k<=y_max+depth;k++) {
 #pragma ivdep
@@ -126,7 +124,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
   }
 
   if(fields[FTNREF1D(FIELD_DENSITY1,1)]==1) {
-    if(chunk_neighbours[FTNREF1D(CHUNK_BOTTOM,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_BOTTOM,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_BOTTOM,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (j=x_min-depth;j<=x_max+depth;j++) {
 #pragma ivdep
@@ -136,7 +134,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_TOP,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_TOP,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_TOP,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (j=x_min-depth;j<=x_max+depth;j++) {
 #pragma ivdep
@@ -146,7 +144,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_LEFT,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_LEFT,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_LEFT,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (k=y_min-depth;k<=y_max+depth;k++) {
 #pragma ivdep
@@ -156,7 +154,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_RIGHT,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_RIGHT,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_RIGHT,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (k=y_min-depth;k<=y_max+depth;k++) {
 #pragma ivdep
@@ -168,7 +166,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
   }
 
   if(fields[FTNREF1D(FIELD_ENERGY0,1)]==1) {
-    if(chunk_neighbours[FTNREF1D(CHUNK_BOTTOM,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_BOTTOM,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_BOTTOM,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (j=x_min-depth;j<=x_max+depth;j++) {
 #pragma ivdep
@@ -178,7 +176,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_TOP,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_TOP,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_TOP,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (j=x_min-depth;j<=x_max+depth;j++) {
 #pragma ivdep
@@ -188,7 +186,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_LEFT,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_LEFT,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_LEFT,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (k=y_min-depth;k<=y_max+depth;k++) {
 #pragma ivdep
@@ -198,7 +196,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_RIGHT,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_RIGHT,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_RIGHT,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (k=y_min-depth;k<=y_max+depth;k++) {
 #pragma ivdep
@@ -210,7 +208,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
   }
 
   if(fields[FTNREF1D(FIELD_ENERGY1,1)]==1) {
-    if(chunk_neighbours[FTNREF1D(CHUNK_BOTTOM,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_BOTTOM,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_BOTTOM,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (j=x_min-depth;j<=x_max+depth;j++) {
 #pragma ivdep
@@ -220,7 +218,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_TOP,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_TOP,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_TOP,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (j=x_min-depth;j<=x_max+depth;j++) {
 #pragma ivdep
@@ -230,7 +228,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_LEFT,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_LEFT,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_LEFT,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (k=y_min-depth;k<=y_max+depth;k++) {
 #pragma ivdep
@@ -240,7 +238,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_RIGHT,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_RIGHT,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_RIGHT,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (k=y_min-depth;k<=y_max+depth;k++) {
 #pragma ivdep
@@ -252,7 +250,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
   }
 
   if(fields[FTNREF1D(FIELD_PRESSURE,1)]==1) {
-    if(chunk_neighbours[FTNREF1D(CHUNK_BOTTOM,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_BOTTOM,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_BOTTOM,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (j=x_min-depth;j<=x_max+depth;j++) {
 #pragma ivdep
@@ -262,7 +260,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_TOP,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_TOP,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_TOP,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (j=x_min-depth;j<=x_max+depth;j++) {
 #pragma ivdep
@@ -272,7 +270,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_LEFT,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_LEFT,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_LEFT,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (k=y_min-depth;k<=y_max+depth;k++) {
 #pragma ivdep
@@ -282,7 +280,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_RIGHT,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_RIGHT,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_RIGHT,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (k=y_min-depth;k<=y_max+depth;k++) {
 #pragma ivdep
@@ -294,7 +292,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
   }
 
   if(fields[FTNREF1D(FIELD_VISCOSITY,1)]==1) {
-    if(chunk_neighbours[FTNREF1D(CHUNK_BOTTOM,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_BOTTOM,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_BOTTOM,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (j=x_min-depth;j<=x_max+depth;j++) {
 #pragma ivdep
@@ -304,7 +302,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_TOP,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_TOP,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_TOP,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (j=x_min-depth;j<=x_max+depth;j++) {
 #pragma ivdep
@@ -314,7 +312,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_LEFT,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_LEFT,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_LEFT,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (k=y_min-depth;k<=y_max+depth;k++) {
 #pragma ivdep
@@ -324,7 +322,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_RIGHT,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_RIGHT,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_RIGHT,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (k=y_min-depth;k<=y_max+depth;k++) {
 #pragma ivdep
@@ -336,7 +334,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
   }
 
   if(fields[FTNREF1D(FIELD_SOUNDSPEED,1)]==1) {
-    if(chunk_neighbours[FTNREF1D(CHUNK_BOTTOM,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_BOTTOM,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_BOTTOM,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (j=x_min-depth;j<=x_max+depth;j++) {
 #pragma ivdep
@@ -346,7 +344,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_TOP,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_TOP,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_TOP,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (j=x_min-depth;j<=x_max+depth;j++) {
 #pragma ivdep
@@ -356,7 +354,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_LEFT,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_LEFT,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_LEFT,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (k=y_min-depth;k<=y_max+depth;k++) {
 #pragma ivdep
@@ -366,7 +364,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_RIGHT,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_RIGHT,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_RIGHT,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (k=y_min-depth;k<=y_max+depth;k++) {
 #pragma ivdep
@@ -377,7 +375,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
     }
   }
   if(fields[FTNREF1D(FIELD_XVEL0,1)]==1) {
-    if(chunk_neighbours[FTNREF1D(CHUNK_BOTTOM,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_BOTTOM,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_BOTTOM,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (j=x_min-depth;j<=x_max+1+depth;j++) {
 #pragma ivdep
@@ -387,7 +385,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_TOP,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_TOP,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_TOP,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (j=x_min-depth;j<=x_max+1+depth;j++) {
 #pragma ivdep
@@ -397,7 +395,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_LEFT,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_LEFT,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_LEFT,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (k=y_min-depth;k<=y_max+1+depth;k++) {
 #pragma ivdep
@@ -407,7 +405,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_RIGHT,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_RIGHT,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_RIGHT,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (k=y_min-depth;k<=y_max+1+depth;k++) {
 #pragma ivdep
@@ -419,7 +417,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
   }
 
   if(fields[FTNREF1D(FIELD_XVEL1,1)]==1) {
-    if(chunk_neighbours[FTNREF1D(CHUNK_BOTTOM,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_BOTTOM,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_BOTTOM,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (j=x_min-depth;j<=x_max+1+depth;j++) {
 #pragma ivdep
@@ -429,7 +427,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_TOP,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_TOP,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_TOP,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (j=x_min-depth;j<=x_max+1+depth;j++) {
 #pragma ivdep
@@ -439,7 +437,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_LEFT,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_LEFT,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_LEFT,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (k=y_min-depth;k<=y_max+1+depth;k++) {
 #pragma ivdep
@@ -449,7 +447,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_RIGHT,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_RIGHT,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_RIGHT,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (k=y_min-depth;k<=y_max+1+depth;k++) {
 #pragma ivdep
@@ -461,7 +459,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
   }
 
   if(fields[FTNREF1D(FIELD_YVEL0,1)]==1) {
-    if(chunk_neighbours[FTNREF1D(CHUNK_BOTTOM,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_BOTTOM,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_BOTTOM,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (j=x_min-depth;j<=x_max+1+depth;j++) {
 #pragma ivdep
@@ -471,7 +469,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_TOP,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_TOP,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_TOP,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (j=x_min-depth;j<=x_max+1+depth;j++) {
 #pragma ivdep
@@ -481,7 +479,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_LEFT,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_LEFT,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_LEFT,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (k=y_min-depth;k<=y_max+1+depth;k++) {
 #pragma ivdep
@@ -491,7 +489,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_RIGHT,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_RIGHT,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_RIGHT,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (k=y_min-depth;k<=y_max+1+depth;k++) {
 #pragma ivdep
@@ -503,7 +501,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
   }
 
   if(fields[FTNREF1D(FIELD_YVEL1,1)]==1) {
-    if(chunk_neighbours[FTNREF1D(CHUNK_BOTTOM,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_BOTTOM,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_BOTTOM,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (j=x_min-depth;j<=x_max+1+depth;j++) {
 #pragma ivdep
@@ -513,7 +511,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_TOP,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_TOP,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_TOP,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (j=x_min-depth;j<=x_max+1+depth;j++) {
 #pragma ivdep
@@ -523,7 +521,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_LEFT,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_LEFT,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_LEFT,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (k=y_min-depth;k<=y_max+1+depth;k++) {
 #pragma ivdep
@@ -533,7 +531,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_RIGHT,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_RIGHT,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_RIGHT,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (k=y_min-depth;k<=y_max+1+depth;k++) {
 #pragma ivdep
@@ -545,7 +543,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
   }
 
   if(fields[FTNREF1D(FIELD_VOL_FLUX_X,1)]==1) {
-    if(chunk_neighbours[FTNREF1D(CHUNK_BOTTOM,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_BOTTOM,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_BOTTOM,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (j=x_min-depth;j<=x_max+1+depth;j++) {
 #pragma ivdep
@@ -555,7 +553,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_TOP,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_TOP,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_TOP,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (j=x_min-depth;j<=x_max+1+depth;j++) {
 #pragma ivdep
@@ -565,7 +563,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_LEFT,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_LEFT,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_LEFT,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (k=y_min-depth;k<=y_max+depth;k++) {
 #pragma ivdep
@@ -574,7 +572,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
         }
       }
     }
-    if(chunk_neighbours[FTNREF1D(CHUNK_RIGHT,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_RIGHT,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_RIGHT,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (k=y_min-depth;k<=y_max+depth;k++) {
 #pragma ivdep
@@ -586,7 +584,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
   }
 
   if(fields[FTNREF1D(FIELD_MASS_FLUX_X,1)]==1) {
-    if(chunk_neighbours[FTNREF1D(CHUNK_BOTTOM,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_BOTTOM,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_BOTTOM,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (j=x_min-depth;j<=x_max+1+depth;j++) {
 #pragma ivdep
@@ -596,7 +594,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_TOP,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_TOP,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_TOP,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (j=x_min-depth;j<=x_max+1+depth;j++) {
 #pragma ivdep
@@ -606,7 +604,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_LEFT,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_LEFT,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_LEFT,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (k=y_min-depth;k<=y_max+depth;k++) {
 #pragma ivdep
@@ -616,7 +614,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_RIGHT,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_RIGHT,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_RIGHT,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (k=y_min-depth;k<=y_max+depth;k++) {
 #pragma ivdep
@@ -628,7 +626,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
   }
 
   if(fields[FTNREF1D(FIELD_VOL_FLUX_Y,1)]==1) {
-    if(chunk_neighbours[FTNREF1D(CHUNK_BOTTOM,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_BOTTOM,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_BOTTOM,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (j=x_min-depth;j<=x_max+depth;j++) {
 #pragma ivdep
@@ -638,7 +636,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_TOP,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_TOP,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_TOP,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (j=x_min-depth;j<=x_max+depth;j++) {
 #pragma ivdep
@@ -648,7 +646,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_LEFT,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_LEFT,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_LEFT,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (k=y_min-depth;k<=y_max+1+depth;k++) {
 #pragma ivdep
@@ -658,7 +656,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_RIGHT,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_RIGHT,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_RIGHT,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (k=y_min-depth;k<=y_max+1+depth;k++) {
 #pragma ivdep
@@ -670,7 +668,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
   }
 
   if(fields[FTNREF1D(FIELD_MASS_FLUX_Y,1)]==1) {
-    if(chunk_neighbours[FTNREF1D(CHUNK_BOTTOM,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_BOTTOM,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_BOTTOM,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (j=x_min-depth;j<=x_max+depth;j++) {
 #pragma ivdep
@@ -680,7 +678,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_TOP,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_TOP,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_TOP,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (j=x_min-depth;j<=x_max+depth;j++) {
 #pragma ivdep
@@ -690,7 +688,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_LEFT,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_LEFT,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_LEFT,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (k=y_min-depth;k<=y_max+1+depth;k++) {
 #pragma ivdep
@@ -700,7 +698,7 @@ void update_halo_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
       }
     }
 
-    if(chunk_neighbours[FTNREF1D(CHUNK_RIGHT,1)]==EXTERNAL_FACE && tile_neighbours[FTNREF1D(TILE_RIGHT,1)]==EXTERNAL_TILE) {
+    if(chunk_neighbours[FTNREF1D(CHUNK_RIGHT,1)]==EXTERNAL_FACE) {
 #pragma omp for private(j,k)
       for (k=y_min-depth;k<=y_max+1+depth;k++) {
 #pragma ivdep

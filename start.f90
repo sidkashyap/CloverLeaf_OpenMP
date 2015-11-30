@@ -31,18 +31,18 @@ SUBROUTINE start
 
   IMPLICIT NONE
 
-  INTEGER :: c, tile
+  INTEGER :: c
 
   INTEGER :: x_cells,y_cells
-  INTEGER:: right,left,top,bottom
+  INTEGER, ALLOCATABLE :: right(:),left(:),top(:),bottom(:)
 
-  INTEGER :: fields(NUM_FIELDS) !, chunk_task_responsible_for
+  INTEGER :: fields(NUM_FIELDS)
 
   LOGICAL :: profiler_off
 
   IF(parallel%boss)THEN
-    WRITE(g_out,*) 'Setting up initial geometry'
-    WRITE(g_out,*)
+     WRITE(g_out,*) 'Setting up initial geometry'
+     WRITE(g_out,*)
   ENDIF
 
   time  = 0.0
@@ -54,56 +54,64 @@ SUBROUTINE start
 
   CALL clover_get_num_chunks(number_of_chunks)
 
+  ALLOCATE(chunks(1:number_of_chunks))
+  ALLOCATE(left(1:number_of_chunks))
+  ALLOCATE(right(1:number_of_chunks))
+  ALLOCATE(bottom(1:number_of_chunks))
+  ALLOCATE(top(1:number_of_chunks))
 
   CALL clover_decompose(grid%x_cells,grid%y_cells,left,right,bottom,top)
 
-  !create the chunks
+  DO c=1,number_of_chunks
       
-  chunk%task = parallel%task
+    ! Needs changing so there can be more than 1 chunk per task
+    chunks(c)%task = c-1
 
-  !chunk_task_responsible_for = parallel%task+1
-
-  x_cells = right -left  +1
-  y_cells = top   -bottom+1
+    x_cells = right(c) -left(c)  +1
+    y_cells = top(c)   -bottom(c)+1
       
-  chunk%left    = left
-  chunk%bottom  = bottom
-  chunk%right   = right
-  chunk%top     = top
-  chunk%left_boundary   = 1
-  chunk%bottom_boundary = 1
-  chunk%right_boundary  = grid%x_cells
-  chunk%top_boundary    = grid%y_cells
-  chunk%x_min = 1
-  chunk%y_min = 1
-  chunk%x_max = x_cells
-  chunk%y_max = y_cells
-    
-    
+    IF(chunks(c)%task.EQ.parallel%task)THEN
+      CALL build_field(c,x_cells,y_cells)
+    ENDIF
+    chunks(c)%field%left    = left(c)
+    chunks(c)%field%bottom  = bottom(c)
+    chunks(c)%field%right   = right(c)
+    chunks(c)%field%top     = top(c)
+    chunks(c)%field%left_boundary   = 1
+    chunks(c)%field%bottom_boundary = 1
+    chunks(c)%field%right_boundary  = grid%x_cells
+    chunks(c)%field%top_boundary    = grid%y_cells
+    chunks(c)%field%x_min = 1
+    chunks(c)%field%y_min = 1
+    chunks(c)%field%x_max = right(c)-left(c)+1
+    chunks(c)%field%y_max = top(c)-bottom(c)+1
 
+  ENDDO
 
-  ! create the tiles
-  ALLOCATE( chunk%tiles(1:tiles_per_chunk) )
-
-  CALL clover_tile_decompose(x_cells, y_cells)
-    
-
-
-  CALL build_field()
-
+  DEALLOCATE(left,right,bottom,top)
 
   CALL clover_barrier
 
-  CALL clover_allocate_buffers()
+  DO c=1,number_of_chunks
+    IF(chunks(c)%task.EQ.parallel%task)THEN
+      CALL clover_allocate_buffers(c)
+    ENDIF
+  ENDDO
+
+  DO c=1,number_of_chunks
+    IF(chunks(c)%task.EQ.parallel%task)THEN
+      CALL initialise_chunk(c)
+    ENDIF
+  ENDDO
 
   IF(parallel%boss)THEN
-    WRITE(g_out,*) 'Generating chunks'
+     WRITE(g_out,*) 'Generating chunks'
   ENDIF
 
-
-  DO tile=1,tiles_per_chunk
-    CALL initialise_chunk(tile)
-    CALL generate_chunk(tile)
+  DO c=1,number_of_chunks
+    IF(chunks(c)%task.EQ.parallel%task)THEN
+      CALL generate_chunk(c)
+    ENDIF
   ENDDO
 
   advect_x=.TRUE.
@@ -115,9 +123,8 @@ SUBROUTINE start
   profiler_off=profiler_on
   profiler_on=.FALSE.
 
-
-  DO tile = 1, tiles_per_chunk
-    CALL ideal_gas(tile,.FALSE.)
+  DO c = 1, number_of_chunks
+    CALL ideal_gas(c,.FALSE.)
   END DO
 
   ! Prime all halo data for the first step
@@ -136,8 +143,8 @@ SUBROUTINE start
   CALL update_halo(fields,2)
 
   IF(parallel%boss)THEN
-    WRITE(g_out,*)
-    WRITE(g_out,*) 'Problem initialised and generated'
+     WRITE(g_out,*)
+     WRITE(g_out,*) 'Problem initialised and generated'
   ENDIF
 
   CALL field_summary()

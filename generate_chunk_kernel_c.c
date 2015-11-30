@@ -18,8 +18,7 @@
 /**
  *  @brief C mesh chunk generator
  *  @author Wayne Gaudin
- *  @details Generates the field data on a mesh chunk based on the user specified
- *  input for the states.
+ *  @details Still just a stub.
  *   
  *  Note that state one is always used as the background state, which is then
  *  overwritten by further state definitions.

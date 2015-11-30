@@ -27,7 +27,7 @@
 #include "ftocmacros.h"
 #include <math.h>
 
-void advec_cell_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
+void advec_cell_kernel_c_(int *flop,int *xmin,int *xmax,int *ymin,int *ymax,
                           int *dr,
                           int *swp_nmbr,
                        double *vertexdx,
@@ -56,6 +56,7 @@ void advec_cell_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
   int sweep_number=*swp_nmbr;
   int dir=*dr;
 
+
   int j,k,upwind,donor,downwind,dif;
 
   int g_xdir=1,g_ydir=2;
@@ -65,12 +66,15 @@ void advec_cell_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
 
   one_by_six=1.0/6.0;
 
-#pragma omp parallel
+  int TotalFlopCount=0;
+
+#pragma omp parallel reduction(+:TotalFlopCount)
  {
+  int FlopCount=0;
   if(dir==g_xdir){
 
     if(sweep_number==1){
-#pragma omp for private(j)
+#pragma omp for private(j) reduction(+:FlopCount) 
       for (k=y_min-2;k<=y_max+2;k++) {
 #pragma ivdep
         for (j=x_min-2;j<=x_max+2;j++) {
@@ -83,12 +87,14 @@ void advec_cell_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
           post_vol[FTNREF2D(j  ,k  ,x_max+5,x_min-2,y_min-2)]=pre_vol[FTNREF2D(j  ,k  ,x_max+5,x_min-2,y_min-2)]
                                                             -(vol_flux_x[FTNREF2D(j+1,k  ,x_max+5,x_min-2,y_min-2)]
                                                              -vol_flux_x[FTNREF2D(j  ,k  ,x_max+5,x_min-2,y_min-2)]);
+
+          FlopCount+=6;
         }
       }
 
     }
     else {
-#pragma omp for private(j)
+#pragma omp for private(j) reduction(+:FlopCount)
       for (k=y_min-2;k<=y_max+2;k++) {
 #pragma ivdep
         for (j=x_min-2;j<=x_max+2;j++) {
@@ -96,11 +102,15 @@ void advec_cell_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
                                                             +vol_flux_x[FTNREF2D(j+1,k  ,x_max+5,x_min-2,y_min-2)]
                                                             -vol_flux_x[FTNREF2D(j  ,k  ,x_max+5,x_min-2,y_min-2)];
           post_vol[FTNREF2D(j  ,k  ,x_max+5,x_min-2,y_min-2)]=volume[FTNREF2D(j  ,k  ,x_max+4,x_min-2,y_min-2)];
+          FlopCount+=2;
         }
       }
 
     }
-#pragma omp for private(upwind,donor,downwind,dif,sigmat,sigma3,sigma4,sigmav,sigma,sigmam,diffuw,diffdw,limiter,j)
+
+    TotalFlopCount=FlopCount;
+    FlopCount=0;
+#pragma omp for private(upwind,donor,downwind,dif,sigmat,sigma3,sigma4,sigmav,sigma,sigmam,diffuw,diffdw,limiter,j) reduction(+:FlopCount)
     for (k=y_min;k<=y_max;k++) {
       for (j=x_min;j<=x_max+2;j++) {
 
@@ -120,15 +130,20 @@ void advec_cell_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
         sigmat=fabs(vol_flux_x[FTNREF2D(j,k,x_max+5,x_min-2,y_min-2)]/pre_vol[FTNREF2D(donor,k  ,x_max+5,x_min-2,y_min-2)]);
         sigma3=(1.0+sigmat)*(vertexdx[FTNREF1D(j,x_min-2)]/vertexdx[FTNREF1D(dif,x_min-2)]);
         sigma4=2.0-sigmat;
-
+        //Flop Count - 11
+        
         sigma=sigmat;
         sigmav=sigmat;
 
         diffuw=density1[FTNREF2D(donor,k  ,x_max+4,x_min-2,y_min-2)]-density1[FTNREF2D(upwind,k  ,x_max+4,x_min-2,y_min-2)];
         diffdw=density1[FTNREF2D(downwind,k  ,x_max+4,x_min-2,y_min-2)]-density1[FTNREF2D(donor,k  ,x_max+4,x_min-2,y_min-2)];
+
+        //Flop Count - 13
+        
         if(diffuw*diffdw>0.0){
           limiter=(1.0-sigmav)*SIGN(1.0,diffdw)*MIN(fabs(diffuw),MIN(fabs(diffdw)
               ,one_by_six*(sigma3*fabs(diffuw)+sigma4*fabs(diffdw))));
+          FlopCount+=6;
         }
         else{
           limiter=0.0;
@@ -136,13 +151,20 @@ void advec_cell_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
         mass_flux_x[FTNREF2D(j,k,x_max+5,x_min-2,y_min-2)]=vol_flux_x[FTNREF2D(j,k,x_max+5,x_min-2,y_min-2)]
                                                           *(density1[FTNREF2D(donor,k  ,x_max+4,x_min-2,y_min-2)]+limiter);
 
+        //Flop Count = 14
         sigmam=fabs(mass_flux_x[FTNREF2D(j,k,x_max+5,x_min-2,y_min-2)])/(density1[FTNREF2D(donor,k  ,x_max+4,x_min-2,y_min-2)]
               *pre_vol[FTNREF2D(donor,k  ,x_max+5,x_min-2,y_min-2)]);
+
+        //Flop Count = 19
         diffuw=energy1[FTNREF2D(donor,k  ,x_max+4,x_min-2,y_min-2)]-energy1[FTNREF2D(upwind,k  ,x_max+4,x_min-2,y_min-2)];
         diffdw=energy1[FTNREF2D(downwind,k  ,x_max+4,x_min-2,y_min-2)]-energy1[FTNREF2D(donor,k  ,x_max+4,x_min-2,y_min-2)];
+
+        //Flop Count = 21
         if(diffuw*diffdw>0.0){
           limiter=(1.0-sigmam)*SIGN(1.0,diffdw)*MIN(fabs(diffuw),MIN(fabs(diffdw)
               ,one_by_six*(sigma3*fabs(diffuw)+sigma4*fabs(diffdw))));
+
+          FlopCount+=6;
         }
         else {
           limiter=0.0;
@@ -150,10 +172,14 @@ void advec_cell_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
         ener_flux[FTNREF2D(j,k,x_max+5,x_min-2,y_min-2)]=mass_flux_x[FTNREF2D(j,k,x_max+5,x_min-2,y_min-2)]
                                                         *(energy1[FTNREF2D(donor,k  ,x_max+4,x_min-2,y_min-2)]+limiter);
 
+        FlopCount+=23;
       }
     }
     
-#pragma omp for private(j)
+    TotalFlopCount+=FlopCount;
+    FlopCount=0;
+
+#pragma omp for private(j) reduction(+:FlopCount)
     for (k=y_min;k<=y_max;k++) {
 #pragma ivdep
      for (j=x_min;j<=x_max;j++) {
@@ -173,15 +199,19 @@ void advec_cell_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
 
         density1[FTNREF2D(j  ,k  ,x_max+4,x_min-2,y_min-2)]=post_mass[FTNREF2D(j  ,k  ,x_max+5,x_min-2,y_min-2)]/advec_vol[FTNREF2D(j  ,k  ,x_max+5,x_min-2,y_min-2)];
         energy1[FTNREF2D(j  ,k  ,x_max+4,x_min-2,y_min-2)]=post_ener[FTNREF2D(j  ,k  ,x_max+5,x_min-2,y_min-2)];
+
+        FlopCount+=17;
       }
     }
 
+    TotalFlopCount+=FlopCount;
+    FlopCount=0;
   }
   else if(dir==g_ydir){
 
     if(sweep_number==1){
       
-#pragma omp for private(j)
+#pragma omp for private(j) reduction(+:FlopCount)
       for (k=y_min-2;k<=y_max+2;k++) {
 #pragma ivdep
         for (j=x_min-2;j<=x_max+2;j++) {
@@ -194,13 +224,14 @@ void advec_cell_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
           post_vol[FTNREF2D(j  ,k  ,x_max+5,x_min-2,y_min-2)]=pre_vol[FTNREF2D(j  ,k  ,x_max+5,x_min-2,y_min-2)]
                                                             -(vol_flux_y[FTNREF2D(j  ,k+1,x_max+4,x_min-2,y_min-2)]
                                                              -vol_flux_y[FTNREF2D(j  ,k  ,x_max+4,x_min-2,y_min-2)]);
+          FlopCount+=6;
         }
       }
 
     }
     else {
 
-#pragma omp for private(j)
+#pragma omp for private(j) reduction(+:FlopCount)
       for (k=y_min-2;k<=y_max+2;k++) {
 #pragma ivdep
         for (j=x_min-2;j<=x_max+2;j++) {
@@ -208,12 +239,19 @@ void advec_cell_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
                                                         +vol_flux_y[FTNREF2D(j  ,k+1,x_max+4,x_min-2,y_min-2)]
                                                         -vol_flux_y[FTNREF2D(j  ,k  ,x_max+4,x_min-2,y_min-2)];
           post_vol[FTNREF2D(j  ,k  ,x_max+5,x_min-2,y_min-2)]=volume[FTNREF2D(j  ,k  ,x_max+4,x_min-2,y_min-2)];
+          FlopCount+=2;           
+    
         }
       }
 
     }
     
-#pragma omp for private(upwind,donor,downwind,dif,sigmat,sigma3,sigma4,sigmav,sigma,sigmam,diffuw,diffdw,limiter,j)
+
+    TotalFlopCount+=FlopCount;
+    FlopCount=0;
+
+
+#pragma omp for private(upwind,donor,downwind,dif,sigmat,sigma3,sigma4,sigmav,sigma,sigmam,diffuw,diffdw,limiter,j) reduction(+:FlopCount)
     for (k=y_min;k<=y_max+2;k++) {
       for (j=x_min;j<=x_max;j++) {
 
@@ -243,6 +281,8 @@ void advec_cell_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
         if(diffuw*diffdw>0.0){
           limiter=(1.0-sigmav)*SIGN(1.0,diffdw)*MIN(fabs(diffuw),MIN(fabs(diffdw)
               ,one_by_six*(sigma3*fabs(diffuw)+sigma4*fabs(diffdw))));
+
+          FlopCount+=6;
         }
         else{
           limiter=0.0;
@@ -257,6 +297,7 @@ void advec_cell_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
         if(diffuw*diffdw>0.0){
           limiter=(1.0-sigmam)*SIGN(1.0,diffdw)*MIN(fabs(diffuw),MIN(fabs(diffdw)
               ,one_by_six*(sigma3*fabs(diffuw)+sigma4*fabs(diffdw))));
+          FlopCount+=6;
         }
         else {
           limiter=0.0;
@@ -264,10 +305,14 @@ void advec_cell_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
         ener_flux[FTNREF2D(j,k,x_max+5,x_min-2,y_min-2)]=mass_flux_y[FTNREF2D(j,k,x_max+4,x_min-2,y_min-2)]
                                                         *(energy1[FTNREF2D(j  ,donor,x_max+4,x_min-2,y_min-2)]+limiter);
 
+        FlopCount+=23;
       }
     }
+
+    TotalFlopCount+=FlopCount;
+    FlopCount=0;
     
-#pragma omp for private(j)
+#pragma omp for private(j) reduction(+:FlopCount)
     for (k=y_min;k<=y_max;k++) {
 #pragma ivdep
       for (j=x_min;j<=x_max;j++) {
@@ -287,12 +332,20 @@ void advec_cell_kernel_c_(int *xmin,int *xmax,int *ymin,int *ymax,
 
         density1[FTNREF2D(j  ,k  ,x_max+4,x_min-2,y_min-2)]=post_mass[FTNREF2D(j  ,k  ,x_max+5,x_min-2,y_min-2)]/advec_vol[FTNREF2D(j  ,k  ,x_max+5,x_min-2,y_min-2)];
         energy1[FTNREF2D(j  ,k  ,x_max+4,x_min-2,y_min-2)]=post_ener[FTNREF2D(j  ,k  ,x_max+5,x_min-2,y_min-2)];
+
+        FlopCount+=16;
       }
     }
+
+    TotalFlopCount+=FlopCount;
+    
 
   }
 
  }
 
+ *flop=TotalFlopCount;
+// printf("\nADVECTION CELL KERNEL - FLOPS = %d\n",TotalFlopCount);   
+// printf("\nymax %d  ymin %d  xmax %d xmin %d", y_max, y_min, x_max, x_min); 
 }
 

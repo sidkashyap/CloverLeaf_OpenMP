@@ -23,120 +23,113 @@ MODULE PdV_module
 
 CONTAINS
 
-  SUBROUTINE PdV(predict)
+SUBROUTINE PdV(predict)
 
-    USE clover_module
-    USE report_module
-    USE PdV_kernel_module
-    USE revert_module
-    USE update_halo_module
-    USE ideal_gas_module
+  USE clover_module
+  USE report_module
+  USE PdV_kernel_module
+  USE revert_module
+  USE update_halo_module
+  USE ideal_gas_module
 
-    IMPLICIT NONE
+  IMPLICIT NONE
 
-    LOGICAL :: predict
+  LOGICAL :: predict
 
-    INTEGER :: prdct
+  INTEGER :: prdct
 
-    INTEGER :: tile
-    INTEGER :: fields(NUM_FIELDS)
+  INTEGER :: c
+  INTEGER :: fields(NUM_FIELDS)
 
-    REAL(KIND=8) :: kernel_time,timer
+  REAL(KIND=8) :: kernel_time,timer
 
-    error_condition=0 ! Not used yet due to issue with OpenA reduction
+  error_condition=0 ! Not used yet due to issue with OpenA reduction
 
-    IF(profiler_on) kernel_time=timer()
+  IF(profiler_on) kernel_time=timer()
+  DO c=1,number_of_chunks
 
-    IF(predict) THEN
-      prdct=0
-    ELSE
-      prdct=1
-    ENDIF
-  
-    IF(use_fortran_kernels) THEN
+    IF(chunks(c)%task.EQ.parallel%task) THEN
 
-      DO tile=1,tiles_per_chunk
-
-
+      IF(use_fortran_kernels)THEN
         CALL PdV_kernel(predict,                  &
-          chunk%tiles(tile)%t_xmin,      &
-          chunk%tiles(tile)%t_xmax,      &
-          chunk%tiles(tile)%t_ymin,      &
-          chunk%tiles(tile)%t_ymax,      &
-          dt,                         &
-          chunk%tiles(tile)%field%xarea,      &
-          chunk%tiles(tile)%field%yarea,      &
-          chunk%tiles(tile)%field%volume ,    &
-          chunk%tiles(tile)%field%density0,   &
-          chunk%tiles(tile)%field%density1,   &
-          chunk%tiles(tile)%field%energy0,    &
-          chunk%tiles(tile)%field%energy1,    &
-          chunk%tiles(tile)%field%pressure,   &
-          chunk%tiles(tile)%field%viscosity,  &
-          chunk%tiles(tile)%field%xvel0,      &
-          chunk%tiles(tile)%field%xvel1,      &
-          chunk%tiles(tile)%field%yvel0,      &
-          chunk%tiles(tile)%field%yvel1,      &
-          chunk%tiles(tile)%field%work_array1 )
+                      chunks(c)%field%x_min,      &
+                      chunks(c)%field%x_max,      &
+                      chunks(c)%field%y_min,      &
+                      chunks(c)%field%y_max,      &
+                      dt,                         &
+                      chunks(c)%field%xarea,      &
+                      chunks(c)%field%yarea,      &
+                      chunks(c)%field%volume ,    &
+                      chunks(c)%field%density0,   &
+                      chunks(c)%field%density1,   &
+                      chunks(c)%field%energy0,    &
+                      chunks(c)%field%energy1,    &
+                      chunks(c)%field%pressure,   &
+                      chunks(c)%field%viscosity,  &
+                      chunks(c)%field%xvel0,      &
+                      chunks(c)%field%xvel1,      &
+                      chunks(c)%field%yvel0,      &
+                      chunks(c)%field%yvel1,      &
+                      chunks(c)%field%work_array1 )
+      ELSEIF(use_C_kernels)THEN
 
-
-      ENDDO
-  
-    ELSEIF(use_C_kernels) THEN
-      DO tile=1,tiles_per_chunk
-
+        IF(predict) THEN
+          prdct=0
+        ELSE
+          prdct=1
+        ENDIF
 
         CALL PdV_kernel_c(prdct,                  &
-          chunk%tiles(tile)%t_xmin,      &
-          chunk%tiles(tile)%t_xmax,      &
-          chunk%tiles(tile)%t_ymin,      &
-          chunk%tiles(tile)%t_ymax,      &
-          dt,                         &
-          chunk%tiles(tile)%field%xarea,      &
-          chunk%tiles(tile)%field%yarea,      &
-          chunk%tiles(tile)%field%volume ,    &
-          chunk%tiles(tile)%field%density0,   &
-          chunk%tiles(tile)%field%density1,   &
-          chunk%tiles(tile)%field%energy0,    &
-          chunk%tiles(tile)%field%energy1,    &
-          chunk%tiles(tile)%field%pressure,   &
-          chunk%tiles(tile)%field%viscosity,  &
-          chunk%tiles(tile)%field%xvel0,      &
-          chunk%tiles(tile)%field%xvel1,      &
-          chunk%tiles(tile)%field%yvel0,      &
-          chunk%tiles(tile)%field%yvel1,      &
-          chunk%tiles(tile)%field%work_array1 )
-      
-
-      ENDDO
-    ENDIF
-    
-
-    CALL clover_check_error(error_condition)
-    IF(profiler_on) profiler%PdV=profiler%PdV+(timer()-kernel_time)
-
-    IF(error_condition.EQ.1) THEN
-      CALL report_error('PdV','error in PdV')
+                      chunks(c)%field%x_min,      &
+                      chunks(c)%field%x_max,      &
+                      chunks(c)%field%y_min,      &
+                      chunks(c)%field%y_max,      &
+                      dt,                         &
+                      chunks(c)%field%xarea,      &
+                      chunks(c)%field%yarea,      &
+                      chunks(c)%field%volume ,    &
+                      chunks(c)%field%density0,   &
+                      chunks(c)%field%density1,   &
+                      chunks(c)%field%energy0,    &
+                      chunks(c)%field%energy1,    &
+                      chunks(c)%field%pressure,   &
+                      chunks(c)%field%viscosity,  &
+                      chunks(c)%field%xvel0,      &
+                      chunks(c)%field%xvel1,      &
+                      chunks(c)%field%yvel0,      &
+                      chunks(c)%field%yvel1,      &
+                      chunks(c)%field%work_array1 )
+      ENDIF
     ENDIF
 
-    IF(predict)THEN
-      IF(profiler_on) kernel_time=timer()
-      DO tile=1,tiles_per_chunk
-        CALL ideal_gas(tile,.TRUE.)
-      ENDDO
+  ENDDO
 
-      IF(profiler_on) profiler%ideal_gas=profiler%ideal_gas+(timer()-kernel_time)
-      fields=0
-      fields(FIELD_PRESSURE)=1
-      CALL update_halo(fields,1)
-    ENDIF
+  CALL clover_check_error(error_condition)
+  IF(profiler_on) profiler%PdV=profiler%PdV+(timer()-kernel_time)
 
-    IF ( predict ) THEN
-      IF(profiler_on) kernel_time=timer()
-      CALL revert()
-      IF(profiler_on) profiler%revert=profiler%revert+(timer()-kernel_time)
-    ENDIF
+  IF(error_condition.EQ.1) THEN
+    CALL report_error('PdV','error in PdV')
+  ENDIF
 
-  END SUBROUTINE PdV
+  IF(predict)THEN
+    IF(profiler_on) kernel_time=timer()
+    DO c=1,number_of_chunks
+      CALL ideal_gas(c,.TRUE.)
+    ENDDO
+    IF(profiler_on) profiler%ideal_gas=profiler%ideal_gas+(timer()-kernel_time)
+    fields=0
+    fields(FIELD_PRESSURE)=1
+    IF(profiler_on) kernel_time=timer()
+    CALL update_halo(fields,1)
+    IF(profiler_on) profiler%halo_exchange=profiler%halo_exchange+(timer()-kernel_time)
+  ENDIF
+
+  IF ( predict ) THEN
+    IF(profiler_on) kernel_time=timer()
+    CALL revert()
+    IF(profiler_on) profiler%revert=profiler%revert+(timer()-kernel_time)
+  ENDIF
+
+END SUBROUTINE PdV
 
 END MODULE PdV_module
